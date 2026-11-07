@@ -2,7 +2,7 @@
 # run_all.sh [SCENE_ARM ...]      SCENE_ARM in {flame_steak_OPT12T cook_spinach_OPT12T flame_steak_KMOD12T cook_spinach_KMOD12T}
 # default (primary, v2 11-06): flame_steak_KMOD12T cook_spinach_KMOD12T (= the arm of all old stage-1 runs; reproduction targets in EXPECTED_OUTPUTS.md).
 #   OPT12 (secondary, optional, low priority): pass flame_steak_OPT12T cook_spinach_OPT12T.
-# A full run (MAX_CAMS=0) refuses to start until the calibration run has been done and $BUNDLE/CALIBRATED exists (README section 4).
+# A full run (MAX_CAMS=0) refuses to start until the calibration run has been done and $BUNDLE/CALIBRATED exists (CLAUDE.md step 4 / README 2.5).
 # Full official 4DSloMo pipeline on our N3DV K=12 staggered protocol (README "Quick Start" 1-3), resumable: every stage writes OUT/<sa>/.done_<stage>
 # only on success and is skipped on re-run; an unfinished output dir is MOVED aside (*.incomplete_<time>), finished outputs are never overwritten.
 #

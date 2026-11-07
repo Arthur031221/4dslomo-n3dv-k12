@@ -2,13 +2,15 @@
 
 這個 repo 是一份「照著跑就好」的執行包：用**官方 4DSloMo**（SIGGRAPH Asia 2025；stage-1 4DGS → Wan2.1-I2V-14B 影片擴散修補 → stage-2 重訓）在 N3DV 的兩個場景（`flame_steak`、`cook_spinach`）上跑完整流程，最後輸出留出相機 cam00 的 60 張渲染圖。
 
-你要做的事：照第 2 節一步一步跑，**先跑校準、把校準結果傳回給我**，我回你 OK 之後再跑正式版，最後把結果打包傳回給我。
+你要做的事：照第 2 節一步一步跑：先校準、自己核對、通過就直接跑正式版，最後把結果打包傳回給我。
+
+**用 Claude Code（或其他 AI 代理）跑最省事：** clone 下來後在 repo 資料夾裡開 `claude`，跟它說「照 CLAUDE.md 把整個流程跑完」。`CLAUDE.md` 寫好了目標、每一步的自我檢查、什麼情況要停下來；不用等我確認。
 
 ---
 
 ## 0. 先看這三點
 
-1. **一定要先校準（約 1–2 小時）。** 校準結果傳回給我、我回 OK 後，你再執行 `touch CALIBRATED`。沒有這個檔案，正式跑會自己拒絕開始（這是故意的，避免白跑 40 小時）。
+1. **一定要先校準（約 1–2 小時）。** 照 2.5 的三項自己核對，全部通過就 `touch CALIBRATED`、直接跑正式版，不用等我。沒有這個檔案，正式跑會自己拒絕開始（這是故意的，避免白跑 40 小時）。
 2. **不要改** `configs/default.yaml`、解析度、幀數、模型程式。要調的只有第 2 節列出的環境變數。
 3. **中斷了不用怕。** 重新執行同一行指令就會從斷點續跑；已完成的結果不會被刪或覆蓋（未完成的資料夾會被改名成 `*.incomplete_<時間>`）。不要手動刪 `OUT*/` 裡的東西。
 
@@ -86,23 +88,20 @@ tmux new -s calib            # 建議在 tmux 裡跑，斷線不會停
 conda activate 4dslomo
 OUT_ROOT=$PWD/OUT_calib MAX_CAMS=1 STEPS=5 bash run_all.sh flame_steak_KMOD12T
 ```
-跑到最後會印 `[HOLD]` 然後停，這是正常的。接著打包：
+跑到最後會印 `[PART]`／`[HOLD]` 然後停，這是正常的（校準只跑 1 台相機）。接著**自己核對三項**：
 
 ```bash
-OUT_ROOT=$PWD/OUT_calib bash collect_results.sh flame_steak_KMOD12T
+grep S3_RR_PSNR OUT_calib/flame_steak_KMOD12T/logs/stage1_cam00.log        # (1) 要在 27.2658 ± 0.3 之內（26.97–27.57）
+ls OUT_calib/flame_steak_KMOD12T/diffusion/chunk{A,B}/out/images/ | head   # (2) A、B 各 33 張 cam*_????.png
+tail -n 3 OUT_calib/flame_steak_KMOD12T/logs/diffusion_A.log               # 擴散每步秒數（記下來，用來估正式跑時間）
 ```
+(3) 打開幾張擴散輸出，和 `OUT_calib/flame_steak_KMOD12T/renders_train/` 同一台相機的圖比：要看得出是同一個廚房場景，不能是雜訊或全黑。
 
-**請把這些傳回給我：**
-1. `collect_results.sh` 印出的 `.tar` 檔與它的 `.md5`；
-2. 下面三行指令的輸出（直接複製貼上給我即可）：
-```bash
-grep S3_RR_PSNR OUT_calib/flame_steak_KMOD12T/logs/stage1_cam00.log     # 應約 27.27（基準 27.2658，差超過 0.3 先停）
-tail -n 3 OUT_calib/flame_steak_KMOD12T/logs/diffusion_A.log            # 擴散每步秒數
-nvidia-smi --query-gpu=name,memory.total --format=csv
-```
-3. 跑的過程中 `nvidia-smi` 看到的最高顯存（大概就好）。
+- 三項都通過 → 進 2.6。
+- (1) 沒過 → 停下，把 `logs/`、`env/pip_freeze_after_build.txt`、GPU 型號傳給我（環境和原本不同，結果不能比）。
+- (2)(3) 沒過 → 先看第 4 節；還是不行再傳日誌給我。
 
-### 2.6 正式跑（收到我的 OK 之後）
+### 2.6 正式跑（校準三項通過後直接跑）
 
 ```bash
 touch CALIBRATED
@@ -113,7 +112,7 @@ STEPS=50 bash run_all.sh 2>&1 | tee -a run_all_console.log      # 預設跑 flam
 - 有 2 張卡：`GPU=0,1 NGPU=2 STEPS=50 bash run_all.sh`。
 - 斷線：`tmux attach -t slomo` 回去看；中斷了就重跑同一行。
 - 機器是 Slurm 排程系統（要用 `sbatch` 的那種）：改 `slurm_example.sh` 裡 `<...>` 的值後 `sbatch slurm_example.sh`。時間到被砍也沒關係，再送一次會續跑。
-- 只有在我跟你說要跑 5 步版時才用 `STEPS=5`（而且要另指 `OUT_ROOT=`，不同步數不能混在同一個資料夾）。
+- 正式跑一定是 50 步。只有在我跟你說要跑 5 步版時才用 `STEPS=5`（而且要另指 `OUT_ROOT=`，不同步數不能混在同一個資料夾）。
 - 其他旗標（`ASSIGN`、`ADD_REAL`、`PROMPT`、`STOP_AFTER`）**不用動**，保持預設。
 
 ### 2.7 打包傳回
@@ -125,7 +124,7 @@ bash collect_results.sh
 - `OUT/flame_steak_KMOD12T_results.tar`、`OUT/cook_spinach_KMOD12T_results.tar` 和各自的 `.md5`（內含 cam00 stage-1 / stage-2 各 60 張圖、模型 checkpoint、日誌）；
 - `OUT/preflight.txt`、`OUT/run_all.log`、`work/checkpoints/fetch_weights.log`、`env/pip_freeze_after_build.txt`。
 
-傳之前先自己核一次：`cd OUT && md5sum -c *.md5`。若頻寬允許，擴散輸出全部（每個場景約 2 GB）也請一起傳，指令會印在 `collect_results.sh` 的最後。
+傳之前先自己核一次：`cd OUT && md5sum -c *.md5`，並確認兩個場景的 `cam00_stage2/` 各有 60 張圖、`logs/stage1_cam00.log` 的 `S3_RR_PSNR` 在 flame_steak 27.2658 ± 0.3、cook_spinach 27.5276 ± 0.3 之內。若頻寬允許，擴散輸出全部（每個場景約 2 GB）也請一起傳，指令會印在 `collect_results.sh` 的最後。
 
 ---
 
@@ -150,7 +149,7 @@ bash collect_results.sh
 | 狀況 | 怎麼做 |
 |---|---|
 | `OUT/preflight.txt` 說缺權重／缺套件／config md5 不符 | 照訊息補；config md5 必須是 `3b8355b189b7dbd064fdec76033bf7c8` |
-| 擴散階段 OOM（顯存不夠） | 把 `nvidia-smi` 峰值和日誌最後 50 行傳給我；**不要**自己改解析度、幀數或模型程式 |
+| 擴散階段 OOM（顯存不夠） | 可以在 `test_lora.py` 啟用 DiffSynth 官方的顯存管理／CPU offload（數值不變、只是變慢，記下用了什麼）；**不要**改解析度、幀數或模型。還是不行就把 `nvidia-smi` 峰值和日誌最後 50 行傳給我 |
 | 校準的 `S3_RR_PSNR` 跟 27.2658 差超過 0.3 | 先停，把 `logs/` 整包傳給我，不要往下跑 |
 | 編譯失敗（simple-knn、pointops2、rasterizer） | 把 `env/build_env.sh` 的完整輸出傳給我；常見原因是沒有 CUDA 11.8 的 nvcc（腳本會用 conda 裝） |
 | 下載中斷 | 重跑同一個腳本即可（會續傳） |
@@ -164,6 +163,7 @@ bash collect_results.sh
 
 | 檔案 | 用途 |
 |---|---|
+| `CLAUDE.md`、`AGENTS.md` | 給 AI 代理（Claude Code 等）的交付說明：目標、步驟、自我檢查、停下條件 |
 | `setup_repo.sh` | 下載並核對官方程式與資料、套 patch |
 | `env/build_env.sh` | 建 conda 環境；`env/` 另附官方 environment.yml、requirements.txt、README 原樣 |
 | `fetch_weights.sh` | 下載 Wan2.1-I2V-14B-720P 與 4DSloMo LoRA 權重 |
