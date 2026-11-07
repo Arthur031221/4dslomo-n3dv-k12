@@ -1,0 +1,4 @@
+# additions to the official requirements.txt (do not change the method; only make the build / run work)
+numpy<2
+ninja
+opencv-python-headless

@@ -1,0 +1,9 @@
+work/
+big/
+OUT/
+OUT_*/
+CALIBRATED
+*.part
+__pycache__/
+slurm_*.log
+run_all_console.log

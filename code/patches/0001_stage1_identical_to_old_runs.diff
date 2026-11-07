@@ -1,0 +1,44 @@
+--- a/train.py
++++ b/train.py
+@@ -227,6 +227,8 @@
+                 if (iteration in saving_iterations):
+                     print("\n[ITER {}] Saving Gaussians".format(iteration))
+                     scene.save(iteration)
++                    if iteration == opt.iterations:  # S3 patch 10-30: final checkpoint for render_s3.py (chkpnt_best is chosen on test views; never used)
++                        torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
+ 
+                 # Densification
+                 if iteration < opt.densify_until_iter and (opt.densify_until_num_points < 0 or gaussians.get_xyz.shape[0] < opt.densify_until_num_points):
+@@ -389,6 +391,7 @@
+             setattr(args, key, host[key])
+     for k in cfg.keys():
+         recursive_merge(k, cfg)
++    args.save_iterations.append(args.iterations)  # S3 patch 10-30 (2): the yaml can change iterations after the append above; also save the final yaml iteration
+         
+     if args.exhaust_test:
+         args.test_iterations = args.test_iterations + [i for i in range(0,op.iterations,500)]
+--- a/scene/dataset_readers.py
++++ b/scene/dataset_readers.py
+@@ -254,9 +254,9 @@
+             arr = norm_data[:,:,:3] * norm_data[:, :, 3:4] + bg * (1 - norm_data[:, :, 3:4])
+             if norm_data[:, :, 3:4].min() < 1:
+                 arr = np.concatenate([arr, norm_data[:, :, 3:4]], axis=2)
+-                image = Image.fromarray(np.array(arr*255.0, dtype=np.byte), "RGBA")
++                image = Image.fromarray(np.array(arr*255.0, dtype=np.uint8), "RGBA")
+             else:
+-                image = Image.fromarray(np.array(arr*255.0, dtype=np.byte), "RGB")
++                image = Image.fromarray(np.array(arr*255.0, dtype=np.uint8), "RGB")
+ 
+             width, height = image.size[0], image.size[1]
+         else:
+--- a/utils/data_utils.py
++++ b/utils/data_utils.py
+@@ -20,7 +20,7 @@
+                 im_data = np.array(image_load.convert("RGBA"))
+             norm_data = im_data / 255.0
+             arr = norm_data[:,:,:3] * norm_data[:, :, 3:4] + self.bg * (1 - norm_data[:, :, 3:4])
+-            image_load = Image.fromarray(np.array(arr*255.0, dtype=np.byte), "RGB")
++            image_load = Image.fromarray(np.array(arr*255.0, dtype=np.uint8), "RGB")
+             resized_image_rgb = PILtoTorch(image_load, viewpoint_cam.resolution)
+             viewpoint_image = resized_image_rgb[:3, ...].clamp(0.0, 1.0)
+             if resized_image_rgb.shape[1] == 4:

@@ -1,0 +1,52 @@
+--- a/test_lora.py
++++ b/test_lora.py
+@@ -26,6 +26,13 @@
+     parser.add_argument('--output_folder', type=str, required=True, help='Path to output video folder')
+     parser.add_argument('--model_path', type=str, default='./checkpoints/4DSloMo_LoRA.ckpt', help='Path to the LoRA model checkpoint')
+     parser.add_argument('--num_inference_steps', type=int, default=50, help='Number of inference steps')
++    # --- parameterization patch (bundle slomo_full_k12): defaults reproduce the official dance-demo behaviour ---
++    parser.add_argument('--prompt', type=str, default="A girl dancing", help='text prompt (official: hard-coded "A girl dancing")')
++    parser.add_argument('--cams', type=str, default="19305323,19305319,19305336,19305328,19305326,19305340,19305309,19305329,19224108,19305334,19305337,19305314",
++                        help='comma separated camera names, or @file with one name per line (official: hard-coded dance cameras)')
++    parser.add_argument('--num_frames', type=int, default=33, help='frames per video (official: 33)')
++    parser.add_argument('--seed', type=int, default=0, help='noise seed (official: 0)')
++    parser.add_argument('--skip_existing', action='store_true', help='skip a camera when output_folder/images already holds all its frames (resume)')
+     args = parser.parse_args()
+ 
+     dist.init_process_group(backend="nccl")
+@@ -67,13 +74,19 @@
+     pipe = FixPipeline.from_model_manager(model_manager, device=device)
+     pipe.enable_vram_management(num_persistent_param_in_dit=None)
+ 
+-    cam_list = ["19305323","19305319","19305336","19305328","19305326","19305340","19305309","19305329","19224108","19305334","19305337","19305314"]
++    if args.cams.startswith('@'):
++        cam_list = [l.strip() for l in open(args.cams[1:]) if l.strip()]
++    else:
++        cam_list = [c for c in args.cams.split(',') if c]
+ 
+     cameras_for_this_rank = cam_list[rank::world_size]
+     print(f"Rank {rank} is assigned {len(cameras_for_this_rank)} cameras.")
+ 
+     for cam_name in cameras_for_this_rank:
+         print(f"------ Rank {rank} processing {cam_name} ------")
++        if args.skip_existing and all(os.path.exists(os.path.join(output_folder, "images", f"{cam_name}_{i:04d}.png")) for i in range(args.num_frames)):
++            print(f"skip {cam_name}: all {args.num_frames} output frames exist")
++            continue
+         image_path = f"{image_folder}/test/ours_None/gt_crop/{cam_name}_0000.png"
+         if not os.path.exists(image_path):
+             raise FileNotFoundError(f"Image not found for camera {cam_name}: {image_path}")
+@@ -105,12 +118,12 @@
+             raise ValueError(f"No frames could be read from video for camera {cam_name}: {video_path}")
+ 
+         video = pipe(
+-            prompt="A girl dancing",
++            prompt=args.prompt,
+             negative_prompt="Vivid colors, overexposed, static, blurry details, subtitles, style, artwork, painting, frame, still, overall gray, worst quality, low quality, JPEG compression artifacts, ugly, incomplete, extra fingers, poorly drawn hands, poorly drawn face, deformed, disfigured, malformed limbs, fused fingers, static image, cluttered background, three legs, crowded background, walking backwards",
+             input_image=image,
+             input_video=video,
+             num_inference_steps=args.num_inference_steps,
+-            seed=0,num_frames=33, tiled=True,
++            seed=args.seed,num_frames=args.num_frames, tiled=True,
+             height=1024,  width=1024,cam_id=0
+         )
+         save_img(video, output_folder, cam_name)
