@@ -15,7 +15,7 @@ bb841207eaac7132eb22288549dfab40  ./EXPECTED_OUTPUTS.md
 ee372ff2d25ff30a224f1fe74bece65f  ./fetch_weights.sh
 62198b5b0425d006c27e4824df57dd40  ./.gitignore
 ff45e70cd20d0ab911ac57d0336305f0  ./README.md
-6de7bd29acadec976dc2e38d600913ee  ./run_all.sh
+c37dc04b91b1d1709c863db84565d36b  ./run_all.sh
 9c10aa746362194ee86fa59ad59761a8  ./setup_repo.sh
 73ca2ff4346e4bdca088e6bb7a4bb0f4  ./slurm_example.sh
 beefb9f35ea26d4f97aaa06cf1ce6062  ./tools/assemble_stage2.py

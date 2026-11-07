@@ -71,7 +71,7 @@ PYC
 say "run_all start: ${SAS[*]} STEPS=$STEPS GPU=$GPU ASSIGN=$ASSIGN ADD_REAL=$ADD_REAL"
 pre || { say "PREFLIGHT FAILED"; exit 4; }
 if [ "$MAX_CAMS" = 0 ] && [ ! -e "$BUNDLE/CALIBRATED" ]; then
-  say "REFUSED: full run before calibration. First: OUT_ROOT=$BUNDLE/OUT_calib MAX_CAMS=1 STEPS=5 bash run_all.sh flame_steak_KMOD12T ; send back the timings + S3_RR_PSNR (README 4), then: touch $BUNDLE/CALIBRATED"; exit 6
+  say "REFUSED: full run before calibration. First: OUT_ROOT=$BUNDLE/OUT_calib MAX_CAMS=1 STEPS=5 bash run_all.sh flame_steak_KMOD12T ; self-check it (CLAUDE.md step 4: S3_RR_PSNR within 27.2658 +-0.3, 33 images per chunk), then: touch $BUNDLE/CALIBRATED"; exit 6
 fi
 
 RC_ALL=0
