@@ -1,5 +1,8 @@
 # 4DSloMo 完整版 × N3DV（K=12 錯開快門）執行包
 
+> **追加包（11-12）：再多跑 6 個 N3DV 場景，流程和先前完全相同。** 說明看 `README_b.md`；新資料 `data_slomo_k12_T_b.tar`（約 1.22 GB）在本 repo 的 Release **v2**（tag `v2-data-b`），md5 見 `MD5SUMS_big_b.txt`。環境、權重、校準都沿用舊的，不用重做。照 `README_b.md` 的順序跑，**每跑完一個就先回傳那一個**；台北時間 11-15 24:00 之後才完成的就不必再跑。
+
+
 這個 repo 是一份「照著跑就好」的執行包：用**官方 4DSloMo**（SIGGRAPH Asia 2025；stage-1 4DGS → Wan2.1-I2V-14B 影片擴散修補 → stage-2 重訓）在 N3DV 的兩個場景（`flame_steak`、`cook_spinach`）上跑完整流程，最後輸出留出相機 cam00 的 60 張渲染圖。
 
 你要做的事：照第 2 節一步一步跑：先校準、自己核對、通過就直接跑正式版，最後把結果打包傳回給我。

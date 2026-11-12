@@ -1,0 +1,41 @@
+1a2,4
+> # run_all_b.sh [SCENE_ARM ...]    (addendum copy of run_all.sh; ONLY the SCENE_ARM list and the hard-coded 20-camera counts changed, see run_all_b.diff)
+> # SCENE_ARM in {sear_steak_KMOD12T flame_steak_HRV12T cut_roasted_beef_KMOD12T cook_spinach_HRV12T coffee_martini_KMOD12T flame_salmon_1_KMOD12T}  (the 4 old names are still accepted)
+> # Old header of run_all.sh follows.
+22c25
+< SAS=("$@"); [ ${#SAS[@]} -gt 0 ] || SAS=(flame_steak_KMOD12T cook_spinach_KMOD12T)
+---
+> SAS=("$@"); [ ${#SAS[@]} -gt 0 ] || SAS=(sear_steak_KMOD12T flame_steak_HRV12T cut_roasted_beef_KMOD12T cook_spinach_HRV12T coffee_martini_KMOD12T flame_salmon_1_KMOD12T)
+39c42,43
+<     if [ "$n" -ne 660 ]; then say "[PART] $SA $name: $n/660 frames present (MAX_CAMS or a skipped camera) -> not marked done; wall_s=$(( $(date +%s) - t0 ))"; return 0; fi
+---
+>     local want=$(( $(wc -l < "$SA_OUT/diffusion/chunk$ch/cams.txt") * 33 ))   # addendum: was 660 (20 cams x 33 frames)
+>     if [ "$n" -ne "$want" ]; then say "[PART] $SA $name: $n/$want frames present (MAX_CAMS or a skipped camera) -> not marked done; wall_s=$(( $(date +%s) - t0 ))"; return 0; fi
+50c54,57
+<   case $1 in flame_steak*) echo "A person cooking a steak in a kitchen";; cook_spinach*) echo "A person cooking spinach in a kitchen";; *) echo "A person cooking in a kitchen";; esac
+---
+>   # addendum: per-scene prompts for the four new scenes, same template as the two original ones (was: generic fallback only)
+>   case $1 in flame_steak*|sear_steak*) echo "A person cooking a steak in a kitchen";; cook_spinach*) echo "A person cooking spinach in a kitchen";;
+>              cut_roasted_beef*) echo "A person cutting roasted beef in a kitchen";; coffee_martini*) echo "A person making a coffee martini in a kitchen";;
+>              flame_salmon_1*) echo "A person cooking salmon in a kitchen";; *) echo "A person cooking in a kitchen";; esac
+79c86
+<   case $SA in flame_steak_OPT12T|cook_spinach_OPT12T|flame_steak_KMOD12T|cook_spinach_KMOD12T) ;; *) say "bad SCENE_ARM $SA"; RC_ALL=2; continue;; esac
+---
+>   case $SA in flame_steak_OPT12T|cook_spinach_OPT12T|flame_steak_KMOD12T|cook_spinach_KMOD12T|sear_steak_KMOD12T|flame_steak_HRV12T|cut_roasted_beef_KMOD12T|cook_spinach_HRV12T|coffee_martini_KMOD12T|flame_salmon_1_KMOD12T) ;; *) say "bad SCENE_ARM $SA"; RC_ALL=2; continue;; esac
+84c91,93
+<     chk_data() { [ -f "$DATA/transforms_train.json" ] && [ "$(ls "$DATA/images" | wc -l)" = 160 ] && [ -f "$DATA/points3d.ply" ] && echo "data OK $DATA"; }
+---
+>     # addendum: expected image count differs per scene (training cameras x 5 frames + 60 cam00 GT): 160 for the 20-camera scenes, 155 beef, 150 salmon, 145 coffee
+>     case $SA in cut_roasted_beef*) WANT_IMG=155;; flame_salmon_1*) WANT_IMG=150;; coffee_martini*) WANT_IMG=145;; *) WANT_IMG=160;; esac
+>     chk_data() { [ -f "$DATA/transforms_train.json" ] && [ "$(ls "$DATA/images" | wc -l)" = "$WANT_IMG" ] && [ -f "$DATA/points3d.ply" ] && echo "data OK $DATA"; }
+103c112
+<              [ "$(ls "$SA_OUT/renders_train"/cam??_????.png | wc -l)" = 1200 ]; }
+---
+>              [ "$(ls "$SA_OUT/renders_train"/cam??_????.png | wc -l)" = "$(ls "$SA_OUT/views_src/views"/cam??_????.png | wc -l)" ]; }   # addendum: was 1200 (20 cams x 60 frames)
+111,112c120,122
+<                    [ "$(ls "$SA_OUT/diffusion/chunk$ch/in/test/ours_None/video_crop"/cam??.mp4 | wc -l)" = 20 ] || exit 95
+<                    [ "$(ls "$SA_OUT/diffusion/chunk$ch/in/test/ours_None/gt_crop"/cam??_0000.png | wc -l)" = 20 ] || exit 95
+---
+>                    NC=$(wc -l < "$SA_OUT/diffusion/chunk$ch/cams.txt")   # addendum: number of training cameras (was fixed 20)
+>                    [ "$(ls "$SA_OUT/diffusion/chunk$ch/in/test/ours_None/video_crop"/cam??.mp4 | wc -l)" = "$NC" ] || exit 95
+>                    [ "$(ls "$SA_OUT/diffusion/chunk$ch/in/test/ours_None/gt_crop"/cam??_0000.png | wc -l)" = "$NC" ] || exit 95
