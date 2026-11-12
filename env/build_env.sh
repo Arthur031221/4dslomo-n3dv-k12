@@ -22,7 +22,7 @@ if ! command -v nvcc >/dev/null || ! nvcc --version | grep -q "release 11\."; th
 else
   export CUDA_HOME=${CUDA_HOME:-$(dirname "$(dirname "$(command -v nvcc)")")}
 fi
-export TORCH_CUDA_ARCH_LIST="8.9"      # RTX 6000 Ada = sm_89
+export TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST:-8.9}"      # RTX 6000 Ada = sm_89 (default); H200 = 9.0: export it before running (README_c.md)
 cd "$REPO"
 # requirements.txt lines 1-9 are plain pip packages; the last two lines are the local CUDA extensions.
 pip install $(grep -v '^\./' requirements.txt | tr '\n' ' ')

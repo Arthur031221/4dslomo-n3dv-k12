@@ -1,5 +1,7 @@
 # CLAUDE.md：給執行這個 repo 的 AI 代理（Claude Code 等）的交付說明
 
+> **兩台機器（11-12 追加說明 c）：** 如果你在 **H200 的新機器**上，讀 `README_c.md` 照第 3 節做（要從頭建環境並校準，`TORCH_CUDA_ARCH_LIST=9.0`），只跑 `flame_salmon_1_KMOD12T` → `flame_steak_HRV12T` → `cook_spinach_HRV12T`。如果你在**舊的 48 GB 機器**上，下面的追加任務只跑 `sear_steak_KMOD12T` → `cut_roasted_beef_KMOD12T` → `coffee_martini_KMOD12T`（分工見 `README_c.md`）。
+
 > **追加任務（11-12，優先於下面的舊任務；舊任務已完成）：** 讀 `README_b.md`，在已經建好環境、校準過的舊工作包資料夾裡，依序跑 6 個新場景（`sear_steak_KMOD12T` → `flame_steak_HRV12T` → `cut_roasted_beef_KMOD12T` → `cook_spinach_HRV12T` → `coffee_martini_KMOD12T` → `flame_salmon_1_KMOD12T`），一次一個，用 `run_all_b.sh`＋舊 `collect_results.sh`。新資料從本 repo Release v2（tag `v2-data-b`）下載 `data_slomo_k12_T_b.tar`，先 `md5sum -c MD5SUMS_big_b.txt` 通過才解開。不要重建環境、不要重下載權重、不要重做校準、不要改擴散步數（50）。**每個場景的 `_results.tar` 一做好就告訴使用者回傳，不用等全部**；台北時間 11-15 24:00 之後才完成的不必再跑。stage-1 與參考值差 >0.3 dB 不用停（照跑、回報實際值）；差 >2 dB 或不收斂才停下回報。
 
 

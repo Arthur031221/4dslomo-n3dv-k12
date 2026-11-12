@@ -1,12 +1,12 @@
 c7f59702ef7052e2e04627c671a2bd53  ./AGENTS.md
-756b9c9db37021f8bbd8dd179b8f2052  ./CLAUDE.md
+9256f67d2f9ebea1e34124512e68fb77  ./CLAUDE.md
 51dd6d479530baefc8ae9e423c42cbe6  ./code/CHANGES.md
 08f103396a9162810d16fce8c60cd19e  ./code/OFFICIAL_CODE_MANIFEST.md5
 25bafa984168f3ad83973d8b7c24833a  ./code/patches/0001_stage1_identical_to_old_runs.diff
 794e9a09d8913a06733884706ade8902  ./code/patches/0002_test_lora_parameterize.diff
 ce3c8c64b0e5d9f6e75272f0310e489e  ./collect_results.sh
 83d277944d873596d272c7dc9cb8558e  ./DECISIONS_NEEDED.md
-98875121d8bac1346e3a8bf81f42271e  ./env/build_env.sh
+a261d681f8a73c7288e56e06f8065e09  ./env/build_env.sh
 d52c0c4a61dcffbf58b6a6f9c641ea07  ./env/constraints_extra.txt
 464e6235adbba37a73225ec65297faca  ./env/environment.yml
 96b21948cc2f2b7eda7beb6272e8a1c7  ./env/OFFICIAL_README.md
@@ -14,7 +14,7 @@ d52c0c4a61dcffbf58b6a6f9c641ea07  ./env/constraints_extra.txt
 bb841207eaac7132eb22288549dfab40  ./EXPECTED_OUTPUTS.md
 ee372ff2d25ff30a224f1fe74bece65f  ./fetch_weights.sh
 62198b5b0425d006c27e4824df57dd40  ./.gitignore
-ff45e70cd20d0ab911ac57d0336305f0  ./README.md
+a7778309172acf70330edd572a0f971f  ./README.md
 c37dc04b91b1d1709c863db84565d36b  ./run_all.sh
 9c10aa746362194ee86fa59ad59761a8  ./setup_repo.sh
 73ca2ff4346e4bdca088e6bb7a4bb0f4  ./slurm_example.sh
